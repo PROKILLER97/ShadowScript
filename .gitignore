@@ -1,0 +1,7 @@
+target/
+*.class
+__pycache__/
+*.pyc
+.env
+*.log
+dependency-reduced-pom.xml
