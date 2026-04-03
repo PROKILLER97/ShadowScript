@@ -83,6 +83,21 @@ public class SniperOverlay extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // ── Toggle Capture ─────────────────────────────────────────────────────
+        Button toggleCaptureBtn = new Button("⏹ Stop");
+        styleExportBtn(toggleCaptureBtn);
+        toggleCaptureBtn.setOnAction(e -> {
+            if (captureService != null) {
+                if (toggleCaptureBtn.getText().equals("⏹ Stop")) {
+                    captureService.stop();
+                    toggleCaptureBtn.setText("▶ Start");
+                } else {
+                    captureService.start();
+                    toggleCaptureBtn.setText("⏹ Stop");
+                }
+            }
+        });
+
         // ── Export: DOCX ───────────────────────────────────────────────────────
         Button docxBtn = new Button("⬇ DOCX");
         styleExportBtn(docxBtn);
@@ -107,7 +122,7 @@ public class SniperOverlay extends Application {
         });
 
         // ── Top HBox ───────────────────────────────────────────────────────────
-        HBox topBar = new HBox(4, statusDot, title, spacer, docxBtn, pdfBtn, closeBtn);
+        HBox topBar = new HBox(4, statusDot, title, spacer, toggleCaptureBtn, docxBtn, pdfBtn, closeBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setStyle("-fx-padding: 4 8 4 8; -fx-background-color: rgba(10,12,20,0.55);");
 
