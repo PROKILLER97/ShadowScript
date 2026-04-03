@@ -57,6 +57,9 @@ public class SniperOverlay extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
 
+        // Prevent JavaFX from exiting when hide() is called during capture
+        Platform.setImplicitExit(false);
+
         try {
             buildOverlay(stage);
         } catch (Exception e) {
@@ -298,11 +301,12 @@ public class SniperOverlay extends Application {
 
     // ── FrameRegion ───────────────────────────────────────────────────────────
     public CaptureService.FrameRegion getCaptureRegion() {
+        // Capture FULL screen — bridge.py crops to caption area.
+        // Never use the overlay's own bounds (it would photograph itself).
+        Rectangle2D b = Screen.getPrimary().getVisualBounds();
         return new CaptureService.FrameRegion(
-            (int) primaryStage.getX(),
-            (int) primaryStage.getY(),
-            (int) primaryStage.getWidth(),
-            (int) primaryStage.getHeight()
+            (int) b.getMinX(), (int) b.getMinY(),
+            (int) b.getWidth(), (int) b.getHeight()
         );
     }
 
