@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -109,15 +110,20 @@ public class CaptureService {
 
             FrameRegion region = regionSupplier.get();
 
-            // Hide overlay so it doesn't appear in its own screenshot
-            Platform.runLater(() -> primaryStage.setOpacity(0));
-            Thread.sleep(150); // wait for opacity change to render
+            // Block capture thread until JavaFX actually hides the window
+            CompletableFuture<Void> hidden = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                primaryStage.hide();
+                hidden.complete(null);
+            });
+            hidden.get(1, TimeUnit.SECONDS); // wait for hide to execute
+            Thread.sleep(200);               // wait for compositor to flush
 
             BufferedImage img = robot.createScreenCapture(
                     new Rectangle(region.x(), region.y(), region.width(), region.height()));
 
-            // Restore overlay immediately after capture
-            Platform.runLater(() -> primaryStage.setOpacity(1));
+            // Restore overlay
+            Platform.runLater(() -> primaryStage.show());
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(img, "png", baos);
@@ -128,7 +134,7 @@ public class CaptureService {
             sendAsync(jsonBody);
 
         } catch (Exception e) {
-            Platform.runLater(() -> primaryStage.setOpacity(1)); // always restore
+            Platform.runLater(() -> primaryStage.show()); // always restore
             onStatus.accept(SniperOverlay.Status.ERROR);
             onError.accept(e);
         }

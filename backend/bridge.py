@@ -56,9 +56,11 @@ def decode_base64_to_cv2(b64_string: str) -> np.ndarray:
         raise HTTPException(status_code=400, detail=f"Image decode failed: {e}")
 
 def crop_caption_area(image: np.ndarray) -> np.ndarray:
-    """Crop to bottom 30% of frame — where captions always appear."""
+    """Crop to caption band: 60%-95% vertically, skipping title bar and controls."""
     h, w = image.shape[:2]
-    return image[int(h * 0.7):h, 0:w]
+    top    = int(h * 0.60)
+    bottom = int(h * 0.95)
+    return image[top:bottom, 0:w]
 
 def preprocess(image: np.ndarray) -> np.ndarray:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
